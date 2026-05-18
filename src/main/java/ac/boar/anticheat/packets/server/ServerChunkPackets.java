@@ -42,12 +42,14 @@ public class ServerChunkPackets implements PacketListener {
         }
 
         if (event.getPacket() instanceof UpdateSubChunkBlocksPacket packet) {
-            if (Math.abs(player.position.x - packet.getPosition().getX()) <= 16 || Math.abs(player.position.z - packet.getPosition().getZ()) <= 16) {
+            int blockX = packet.getChunkX() << 4;
+            int blockZ = packet.getChunkZ() << 4;
+            if (Math.abs(player.position.x - blockX) <= 16 || Math.abs(player.position.z - blockZ) <= 16) {
                 player.sendLatencyStack();
             }
 
             player.getLatencyUtil().queue(() -> {
-                if (player.compensatedWorld.isOutOfRadius(packet.getPosition().getX(), packet.getPosition().getZ())) {
+                if (player.compensatedWorld.isOutOfRadius(blockX, blockZ)) {
                     return;
                 }
 

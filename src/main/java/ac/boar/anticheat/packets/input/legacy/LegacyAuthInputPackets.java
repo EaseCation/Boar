@@ -79,6 +79,9 @@ public class LegacyAuthInputPackets {
             packet.getInputData().add(PlayerAuthInputData.VERTICAL_COLLISION);
         }
 
+        boolean predictedOnGround = player.verticalCollision && player.velocity.y <= 0;
+        packet.setOnGround(predictedOnGround);
+
         // Prevent player from spoofing this to trick Geyser into sending the wrong ground status.
         packet.setDelta(player.velocity.toVector3f());
     }

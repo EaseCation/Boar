@@ -86,6 +86,10 @@ public class CompensatedWorld {
     }
 
     public boolean isOutOfRadius(int chunkX, int chunkZ) {
+        if (this.radiusCenter == null || this.radius <= 0) {
+            return false;
+        }
+
         Vec3 radiusCenter = new Vec3(this.radiusCenter).add(0.5f, 0.5f, 0.5f); // Properly correct eh?
 
         // Still unsure about this... should we get rid of chunk sections, or chunk?
@@ -108,12 +112,12 @@ public class CompensatedWorld {
     }
 
     public void updateBlockSections(UpdateSubChunkBlocksPacket packet) {
-        final BoarChunkSection[] column = this.getChunkSections(packet.getPosition().getX() >> 4, packet.getPosition().getZ() >> 4);
+        final BoarChunkSection[] column = this.getChunkSections(packet.getChunkX(), packet.getChunkZ());
         if (column == null) {
             return;
         }
 
-        int y = packet.getPosition().getY();
+        int y = packet.getChunkY() << 4;
         if (y < getMinY() || ((y - getMinY()) >> 4) > column.length - 1) {
             // Y likely goes above or below the height limit of this world
             return;

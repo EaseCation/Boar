@@ -2,7 +2,7 @@ import java.io.ByteArrayOutputStream
 
 plugins {
     id("java")
-    id("com.gradleup.shadow") version "8.3.0"
+    id("com.gradleup.shadow") version "9.2.2"
     id("com.modrinth.minotaur") version "2.+"
 }
 
@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.geysermc.geyser:core:2.9.5-SNAPSHOT") {
+    compileOnly("org.geysermc.geyser:core:2.9.2-SNAPSHOT") {
         exclude(group = "com.google.code.gson", module = "gson")
     }
 
@@ -56,23 +56,14 @@ modrinth {
 }
 
 fun getCommitMessage(): String {
-    val stdout = ByteArrayOutputStream()
-    exec {
+    return providers.exec {
         commandLine("git", "log", "-1", "--pretty=%B")
-        standardOutput = stdout
-    }
-    return stdout.toString().trim()
+    }.standardOutput.asText.get().trim()
 }
 
 // Thanks to https://gist.github.com/JonasGroeger/7620911 :tm:
 fun getCommitHash(): String {
-    val gitFolder = "$projectDir/.git/"
-    val takeFromHash = 7
-    val head = File(gitFolder + "HEAD").readText().split(":")
-    val isCommit = head.size == 1
-
-    if(isCommit) return head[0].trim().take(takeFromHash)
-
-    val refHead = File(gitFolder + head[1].trim())
-    return refHead.readText().trim().take(takeFromHash);
+    return providers.exec {
+        commandLine("git", "rev-parse", "--short=7", "HEAD")
+    }.standardOutput.asText.get().trim()
 }
