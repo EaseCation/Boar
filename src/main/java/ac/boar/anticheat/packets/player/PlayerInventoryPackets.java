@@ -5,6 +5,7 @@ import ac.boar.anticheat.compensated.cache.container.ContainerCache;
 import ac.boar.anticheat.compensated.cache.container.impl.TradeContainerCache;
 import ac.boar.anticheat.data.inventory.ItemCache;
 import ac.boar.anticheat.player.BoarPlayer;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.protocol.api.CloudburstPacketEvent;
 import ac.boar.protocol.api.PacketListener;
 import org.cloudburstmc.math.vector.Vector3i;
@@ -29,7 +30,10 @@ public class PlayerInventoryPackets implements PacketListener {
 //                    System.out.println("Cancel inventory action: " + packet);
 //                }
                 event.setCancelled(cancelled);
-            } catch (Exception ignored) {}
+            } catch (Exception exception) {
+                BoarLog.warning("inventory", "Failed to validate InventoryTransactionPacket for "
+                        + player.getSession().bedrockUsername(), exception);
+            }
         }
 
         if (event.getPacket() instanceof ItemStackRequestPacket packet) {
@@ -151,7 +155,9 @@ public class PlayerInventoryPackets implements PacketListener {
                 try {
                     inventory.openContainer = new TradeContainerCache(inventory, packet.getOffers(),
                         (byte) packet.getContainerId(), packet.getContainerType(), Vector3i.ZERO, packet.getTraderUniqueEntityId());
-                } catch (Exception ignored) {
+                } catch (Exception exception) {
+                    BoarLog.warning("inventory", "Failed to create trade container cache for "
+                            + player.getSession().bedrockUsername(), exception);
                 }
             });
         }
@@ -163,7 +169,9 @@ public class PlayerInventoryPackets implements PacketListener {
                     final ItemCache cache;
                     try {
                         cache = inventory.getBundleCache().get(Objects.requireNonNull(packet.getStorageItem().getTag()).getInt("bundle_id"));
-                    } catch (Exception ignored) {
+                    } catch (Exception exception) {
+                        BoarLog.debug("inventory", "Ignoring bundle slot update without bundle id for "
+                                + player.getSession().bedrockUsername(), exception);
                         return;
                     }
 
@@ -196,7 +204,9 @@ public class PlayerInventoryPackets implements PacketListener {
                     final ItemCache cache;
                     try {
                         cache = inventory.getBundleCache().get(Objects.requireNonNull(packet.getStorageItem().getTag()).getInt("bundle_id"));
-                    } catch (Exception ignored) {
+                    } catch (Exception exception) {
+                        BoarLog.debug("inventory", "Ignoring bundle content update without bundle id for "
+                                + player.getSession().bedrockUsername(), exception);
                         return;
                     }
 

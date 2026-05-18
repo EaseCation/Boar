@@ -7,6 +7,7 @@ import ac.boar.anticheat.compensated.world.CompensatedWorldImpl;
 import ac.boar.anticheat.data.ItemUseTracker;
 import ac.boar.anticheat.data.vanilla.AttributeInstance;
 import ac.boar.anticheat.teleport.TeleportUtil;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.util.LatencyUtil;
 import ac.boar.anticheat.util.MathUtil;
 import ac.boar.anticheat.util.math.Vec3;
@@ -154,7 +155,9 @@ public final class BoarPlayer extends PlayerData {
             if (this.session.hasPermission("boar.exempt")) {
                 return true;
             }
-        } catch (Exception ignored) {}
+        } catch (Exception exception) {
+            BoarLog.debug("player", "Failed to check boar.exempt permission for " + this.session.bedrockUsername(), exception);
+        }
 
         return this.abilities.contains(Ability.MAY_FLY) || this.getFlagTracker().isFlying() || this.getFlagTracker().isWasFlying();
     }
@@ -180,7 +183,9 @@ public final class BoarPlayer extends PlayerData {
                     cache.getCurrent().tick();
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception exception) {
+            BoarLog.warning("player", "Failed to tick entity cache for " + this.session.bedrockUsername(), exception);
+        }
 
         this.getItemUseTracker().preTick();
     }

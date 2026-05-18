@@ -1,6 +1,7 @@
 package ac.boar.protocol;
 
 import ac.boar.anticheat.player.BoarPlayer;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.protocol.api.CloudburstPacketEvent;
 import ac.boar.protocol.api.PacketListener;
 import io.netty.buffer.ByteBuf;
@@ -31,7 +32,8 @@ public class BoarHandlerAdaptor extends MessageToMessageCodec<BedrockPacketWrapp
             for (final PacketListener listener : PacketEvents.getApi().getListeners()) {
                 listener.onPacketSend(event);
             }
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            BoarLog.severe("packet-send", "Listener failed while sending " + packetName(msg.getPacket()), exception);
         }
 
         if (event.isCancelled()) {
@@ -49,7 +51,9 @@ public class BoarHandlerAdaptor extends MessageToMessageCodec<BedrockPacketWrapp
 
             msg.setPacketBuffer(buf.retain());
             out.add(msg.retain());
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            BoarLog.severe("packet-send", "Failed to encode " + packetName(event.getPacket()), exception);
+            ctx.fireExceptionCaught(exception);
         } finally {
             buf.release();
         }
@@ -68,7 +72,8 @@ public class BoarHandlerAdaptor extends MessageToMessageCodec<BedrockPacketWrapp
             for (final PacketListener listener : PacketEvents.getApi().getListeners()) {
                 listener.onPacketReceived(event);
             }
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            BoarLog.severe("packet-receive", "Listener failed while receiving " + packetName(msg.getPacket()), exception);
         }
 
         if (event.isCancelled()) {
@@ -81,4 +86,7 @@ public class BoarHandlerAdaptor extends MessageToMessageCodec<BedrockPacketWrapp
         event.getPostTasks().forEach(Runnable::run);
     }
 
+    private static String packetName(BedrockPacket packet) {
+        return packet == null ? "null" : packet.getClass().getSimpleName();
+    }
 }

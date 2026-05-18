@@ -11,6 +11,7 @@ import ac.boar.anticheat.packets.player.*;
 import ac.boar.anticheat.packets.server.ServerChunkPackets;
 import ac.boar.anticheat.packets.server.ServerEntityPackets;
 import ac.boar.anticheat.packets.server.ServerDataPackets;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.geyser.GeyserBoar;
 import ac.boar.mappings.BlockMappings;
 import lombok.Getter;
@@ -34,7 +35,7 @@ public class Boar {
 
     public void init(GeyserBoar instance) {
         config = ConfigLoader.load(instance, GeyserBoar.class, Config.class, Config.DEFAULT_CONFIG);
-        // System.out.println("Load config: " + config);
+        BoarLog.info("init", "Loaded config: " + config);
 
         BlockMappings.load();
 
@@ -52,6 +53,7 @@ public class Boar {
         PacketEvents.getApi().register(new PacketCheckRunner());
         PacketEvents.getApi().register(new AuthInputPackets());
         PacketEvents.getApi().register(new PostAuthInputPackets());
+        BoarLog.info("init", "Registered " + PacketEvents.getApi().getListeners().size() + " packet listeners.");
     }
 
     public void terminate(GeyserBoar instance) {
@@ -67,9 +69,9 @@ public class Boar {
         }
 
         switch (type) {
-            case INFO -> GeyserBoar.getLogger().info(message);
-            case WARNING -> GeyserBoar.getLogger().warning(message);
-            case SERVE -> GeyserBoar.getLogger().severe(message);
+            case INFO -> BoarLog.debug("debug", message);
+            case WARNING -> BoarLog.warning("debug", message);
+            case SERVE -> BoarLog.severe("debug", message);
         }
     }
 

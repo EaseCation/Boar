@@ -6,6 +6,7 @@ import ac.boar.anticheat.compensated.world.base.CompensatedWorld;
 import ac.boar.anticheat.data.FluidState;
 import ac.boar.anticheat.data.block.BoarBlockState;
 import ac.boar.anticheat.player.BoarPlayer;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.util.math.Box;
 import ac.boar.anticheat.util.math.Mutable;
 import com.google.common.collect.ImmutableList;
@@ -101,7 +102,10 @@ public class CompensatedWorldImpl extends CompensatedWorld {
                 // System.out.println("Collide able box: " + cache.getCurrent().getBoundingBox() + ", " + cache.getCurrent().getPos());
                 boxes.add(cache.getCurrent().getBoundingBox());
             }
-        } catch (Exception ignored) {}
+        } catch (Exception exception) {
+            BoarLog.debug("world", "Failed to collect collidable entity boxes for "
+                    + getPlayer().getSession().bedrockUsername(), exception);
+        }
 
         return boxes;
     }

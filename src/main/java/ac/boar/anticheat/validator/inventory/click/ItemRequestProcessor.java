@@ -4,6 +4,7 @@ import ac.boar.anticheat.compensated.CompensatedInventory;
 import ac.boar.anticheat.compensated.cache.container.ContainerCache;
 import ac.boar.anticheat.data.inventory.ItemCache;
 import ac.boar.anticheat.player.BoarPlayer;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.validator.inventory.ItemTransactionValidator;
 import lombok.RequiredArgsConstructor;
 import org.cloudburstmc.protocol.bedrock.data.GameType;
@@ -37,7 +38,9 @@ public class ItemRequestProcessor {
                 if (!this.handle(action)) {
                     // We ignore this... for now!
                 }
-            } catch (Exception ignored) {
+            } catch (Exception exception) {
+                BoarLog.debug("inventory", "Failed to process item stack request action "
+                        + action.getClass().getSimpleName() + " for " + player.getSession().bedrockUsername(), exception);
                 // Honestly, this inventory handling system is actually just half-baked system and I never actually
                 // got the motivation to finish it, if you want to, feel free to PR. But for now
                 // I'm just going to leave it as it is, it's good enough *for now*.

@@ -4,6 +4,7 @@ import ac.boar.anticheat.compensated.cache.container.ContainerCache;
 import ac.boar.anticheat.compensated.cache.container.impl.PlayerContainerCache;
 import ac.boar.anticheat.data.inventory.ItemCache;
 import ac.boar.anticheat.player.BoarPlayer;
+import ac.boar.anticheat.util.BoarLog;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.NonNull;
@@ -60,7 +61,9 @@ public class CompensatedInventory {
             }
 
             return stack;
-        } catch (Exception ignored) {
+        } catch (Exception exception) {
+            BoarLog.debug("inventory", "Failed to translate Bedrock item to Java for "
+                    + player.getSession().bedrockUsername() + ": " + data, exception);
             return new ItemStack(Items.AIR_ID);
         }
     }

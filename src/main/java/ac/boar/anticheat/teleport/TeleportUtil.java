@@ -6,6 +6,7 @@ import ac.boar.anticheat.data.input.TickData;
 import ac.boar.anticheat.player.BoarPlayer;
 import ac.boar.anticheat.teleport.data.TeleportCache;
 import ac.boar.anticheat.teleport.data.rewind.RewindData;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.util.math.Vec3;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,12 @@ public class TeleportUtil {
             throw new RuntimeException("You're not suppose to pass rewind teleport to this method!");
         }
         final TeleportCache.Normal teleport = (TeleportCache.Normal) cache;
+
+        BoarLog.debug("teleport", "Sending normal teleport for " + player.getSession().bedrockUsername()
+                + ", protocol=" + player.getSession().protocolVersion()
+                + ", current=" + player.position
+                + ", target=" + teleport.getPosition()
+                + ", tick=" + player.tick);
 
         final MovePlayerPacket packet = new MovePlayerPacket();
         packet.setRuntimeEntityId(player.runtimeEntityId);
@@ -98,6 +105,13 @@ public class TeleportUtil {
         packet.setPredictionType(player.vehicleData != null ? PredictionType.VEHICLE : PredictionType.PLAYER);
 
         queue(new TeleportCache.Rewind(tick, new Vec3(packet.getPosition()), new Vec3(packet.getDelta()), onGround));
+        BoarLog.debug("teleport", "Sending rewind correction for " + player.getSession().bedrockUsername()
+                + ", protocol=" + player.getSession().protocolVersion()
+                + ", tick=" + tick
+                + ", position=" + packet.getPosition()
+                + ", delta=" + packet.getDelta()
+                + ", onGround=" + onGround
+                + ", type=" + packet.getPredictionType());
         this.player.getBedrockSession().sendPacket(packet);
     }
 

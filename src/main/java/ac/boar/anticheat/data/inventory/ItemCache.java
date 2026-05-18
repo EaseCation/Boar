@@ -1,6 +1,7 @@
 package ac.boar.anticheat.data.inventory;
 
 import ac.boar.anticheat.compensated.CompensatedInventory;
+import ac.boar.anticheat.util.BoarLog;
 import lombok.Getter;
 import lombok.Setter;
 import org.cloudburstmc.protocol.bedrock.data.inventory.ItemData;
@@ -53,7 +54,10 @@ public class ItemCache {
 
             try {
                 id = Objects.requireNonNull(data.getTag()).getInt("bundle_id");
-            } catch (Exception ignored) {}
+            } catch (Exception exception) {
+                BoarLog.debug("inventory", "Bundle item without readable bundle_id for "
+                        + inventory.getPlayer().getSession().bedrockUsername(), exception);
+            }
 
             if (id == -1 || inventory.getBundleCache().containsKey(id)) {
                 return cache;

@@ -6,6 +6,7 @@ import ac.boar.anticheat.check.api.annotations.CheckInfo;
 import ac.boar.anticheat.check.api.impl.OffsetHandlerCheck;
 import ac.boar.anticheat.player.BoarPlayer;
 import ac.boar.anticheat.prediction.engine.data.VectorType;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.util.MathUtil;
 import ac.boar.anticheat.util.math.Vec3;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
@@ -36,12 +37,13 @@ public class Prediction extends OffsetHandlerCheck {
             return;
         }
 
-        if (!shouldDoFail() || offset < Boar.getConfig().alertThreshold()) {
-            player.getTeleportUtil().rewind(player.tick);
+        boolean canFail = shouldDoFail();
+        if (!canFail || offset < Boar.getConfig().alertThreshold()) {
+            logAndRewind(offset, canFail, "silent");
             return;
         }
 
-        player.getTeleportUtil().rewind(player.tick);
+        logAndRewind(offset, true, "fail");
 
         boolean claimedHorizontal = player.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
         boolean claimedVertical = player.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION);
@@ -76,6 +78,47 @@ public class Prediction extends OffsetHandlerCheck {
 
     public boolean shouldDoFail() {
         return player.tickSinceBlockResync <= 0 && !player.insideUnloadedChunk && !player.getTeleportUtil().isTeleporting() && player.sinceLoadingScreen > 5 && player.compensatedWorld.isChunkLoaded((int) player.position.x, (int) player.position.z);
+    }
+
+    private void logAndRewind(float offset, boolean canFail, String reason) {
+        logPredictionSetback(offset, canFail, reason);
+        player.getTeleportUtil().rewind(player.tick);
+    }
+
+    private void logPredictionSetback(float offset, boolean canFail, String reason) {
+        boolean claimedHorizontal = player.getInputData().contains(PlayerAuthInputData.HORIZONTAL_COLLISION);
+        boolean claimedVertical = player.getInputData().contains(PlayerAuthInputData.VERTICAL_COLLISION);
+        Vec3 actualMove = player.unvalidatedPosition.subtract(player.prevUnvalidatedPosition);
+        Vec3 predictedMove = player.position.subtract(player.prevUnvalidatedPosition);
+
+        BoarLog.debug("prediction", "Movement discrepancy for " + player.getSession().bedrockUsername()
+                + ", protocol=" + player.getSession().protocolVersion()
+                + ", action=rewind"
+                + ", reason=" + reason
+                + ", tick=" + player.tick
+                + ", offset=" + offset
+                + ", maxOffset=" + player.getMaxOffset()
+                + ", alertThreshold=" + Boar.getConfig().alertThreshold()
+                + ", canFail=" + canFail
+                + ", predictedPos=" + player.position
+                + ", actualPos=" + player.unvalidatedPosition
+                + ", predictedMove=" + predictedMove
+                + ", actualMove=" + actualMove
+                + ", velocity=" + player.velocity
+                + ", clientDelta=" + player.unvalidatedTickEnd
+                + ", bestType=" + player.bestPossibility.getType()
+                + ", collisions(serverH=" + player.horizontalCollision
+                + ", serverV=" + player.verticalCollision
+                + ", clientH=" + claimedHorizontal
+                + ", clientV=" + claimedVertical + ")"
+                + ", state(onGround=" + player.onGround
+                + ", water=" + player.touchingWater
+                + ", unloadedChunk=" + player.insideUnloadedChunk
+                + ", loading=" + player.inLoadingScreen
+                + ", sinceLoading=" + player.sinceLoadingScreen
+                + ", teleporting=" + player.getTeleportUtil().isTeleporting()
+                + ", blockResync=" + player.tickSinceBlockResync + ")"
+                + ", input=" + player.getInputData());
     }
 
     public void fail(String name, String verbose) {

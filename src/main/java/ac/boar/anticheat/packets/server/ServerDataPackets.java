@@ -6,6 +6,7 @@ import ac.boar.anticheat.compensated.cache.entity.EntityCache;
 import ac.boar.anticheat.data.EntityDimensions;
 import ac.boar.anticheat.data.vanilla.AttributeInstance;
 import ac.boar.anticheat.player.BoarPlayer;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.util.DimensionUtil;
 import ac.boar.anticheat.validator.blockbreak.ServerBreakBlockValidator;
 import ac.boar.protocol.api.CloudburstPacketEvent;
@@ -35,8 +36,14 @@ public class ServerDataPackets implements PacketListener {
             player.inLoadingScreen = true;
 
             // We need this to do rewind teleport.
+            AuthoritativeMovementMode oldMode = start.getAuthoritativeMovementMode();
+            int oldRewindHistory = start.getRewindHistorySize();
             start.setAuthoritativeMovementMode(AuthoritativeMovementMode.SERVER_WITH_REWIND);
             start.setRewindHistorySize(Boar.getConfig().rewindHistory());
+            BoarLog.info("start-game", "Enabled rewind for " + player.getSession().bedrockUsername()
+                    + ", protocol=" + player.getSession().protocolVersion()
+                    + ", movementMode=" + oldMode + "->" + start.getAuthoritativeMovementMode()
+                    + ", rewindHistory=" + oldRewindHistory + "->" + start.getRewindHistorySize());
             player.serverBreakBlockValidator = new ServerBreakBlockValidator(player);
 
             player.sendLatencyStack(() -> player.gameType = start.getPlayerGameType());

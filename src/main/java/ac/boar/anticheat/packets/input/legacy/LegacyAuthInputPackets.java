@@ -9,6 +9,7 @@ import ac.boar.anticheat.prediction.UncertainRunner;
 import ac.boar.anticheat.prediction.engine.data.VectorType;
 import ac.boar.anticheat.util.InputUtil;
 
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.util.math.Vec3;
 import org.cloudburstmc.protocol.bedrock.data.Ability;
 import org.cloudburstmc.protocol.bedrock.data.PlayerAuthInputData;
@@ -80,6 +81,12 @@ public class LegacyAuthInputPackets {
         }
 
         boolean predictedOnGround = player.verticalCollision && player.velocity.y <= 0;
+        if (packet.isOnGround() != predictedOnGround) {
+            BoarLog.debug("auth-input", "Adjusted client onGround from " + packet.isOnGround()
+                    + " to " + predictedOnGround
+                    + " for " + player.getSession().bedrockUsername()
+                    + ", protocol=" + player.getSession().protocolVersion());
+        }
         packet.setOnGround(predictedOnGround);
 
         // Prevent player from spoofing this to trick Geyser into sending the wrong ground status.

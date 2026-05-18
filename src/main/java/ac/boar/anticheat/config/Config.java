@@ -39,7 +39,7 @@ public final class Config {
     private long maxBalanceAdvantage = 2000L;
     @JsonProperty("debug-mode")
     @JsonSetter(nulls = Nulls.SKIP)
-    private boolean debugMode;
+    private boolean debugMode = true;
 
     public int rewindHistory() {
         return rewindHistory;

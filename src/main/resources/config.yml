@@ -42,4 +42,4 @@ max-latency-wait: 15000
 max-balance-advantage: 8500
 
 # Should debug mode be enabled or not?
-debug-mode: false
+debug-mode: true

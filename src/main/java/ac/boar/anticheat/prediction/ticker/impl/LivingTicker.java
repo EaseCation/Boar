@@ -10,6 +10,7 @@ import ac.boar.anticheat.prediction.engine.impl.GroundAndAirPredictionEngine;
 import ac.boar.anticheat.prediction.engine.impl.fluid.LavaPredictionEngine;
 import ac.boar.anticheat.prediction.engine.impl.fluid.WaterPredictionEngine;
 import ac.boar.anticheat.prediction.ticker.base.EntityTicker;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.util.MathUtil;
 import ac.boar.anticheat.util.math.Box;
 import ac.boar.anticheat.util.math.Vec3;
@@ -73,6 +74,12 @@ public class LivingTicker extends EntityTicker {
 
         // Prevent player from "elytra bouncing".
         if (player.getFlagTracker().has(EntityFlag.GLIDING) && player.onGround && player.getInputData().contains(PlayerAuthInputData.START_JUMPING)) {
+            BoarLog.debug("prediction", "Elytra-bounce rewind for " + player.getSession().bedrockUsername()
+                    + ", protocol=" + player.getSession().protocolVersion()
+                    + ", tick=" + player.tick
+                    + ", position=" + player.position
+                    + ", velocity=" + player.velocity
+                    + ", input=" + player.getInputData());
             player.getTeleportUtil().rewind(player.tick - 1);
         }
 

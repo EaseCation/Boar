@@ -1,6 +1,7 @@
 package ac.boar.anticheat.data;
 
 import ac.boar.anticheat.player.BoarPlayer;
+import ac.boar.anticheat.util.BoarLog;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -95,7 +96,10 @@ public class ItemUseTracker {
                     }
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception exception) {
+            BoarLog.debug("item-use", "Failed to inspect item use components for "
+                    + player.getSession().bedrockUsername() + ", javaItemId=" + itemId, exception);
+        }
 
         return itemId == Items.BOW.javaId() || itemId == Items.CROSSBOW.javaId() ||
                 itemId == Items.TRIDENT.javaId() || itemId == Items.ENDER_EYE.javaId() ||

@@ -67,8 +67,9 @@ public class ConfigLoader {
                         s = s.replace("disabled-checks: []", "disabled-checks: " + Arrays.toString(config.disabledChecks().toArray(new String[0])));
                         s = s.replace("ignore-ghost-block: false", "ignore-ghost-block: " + config.ignoreGhostBlock());
                         s = s.replace("differ-till-alert: 0.0", "differ-till-alert: " + config.alertThreshold());
-                        s = s.replace("debug-mode: false", "debug-mode: " + config.debugMode());
+                        s = s.replace("debug-mode: true", "debug-mode: " + config.debugMode());
                         s = s.replace("max-latency-wait: 15000", "max-latency-wait: " + config.maxLatencyWait());
+                        s = s.replace("max-balance-advantage: 8500", "max-balance-advantage: " + config.maxBalanceAdvantage());
                     }
 
                     writer.write(s.toCharArray());

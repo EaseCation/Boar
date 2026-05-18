@@ -1,6 +1,7 @@
 package ac.boar.anticheat.packets.other;
 
 import ac.boar.anticheat.player.BoarPlayer;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.util.LatencyUtil;
 import ac.boar.protocol.api.CloudburstPacketEvent;
 import ac.boar.protocol.api.PacketListener;
@@ -36,6 +37,10 @@ public class NetworkLatencyPackets implements PacketListener {
         if (poll == null || poll.id() != id) {
             // TODO: Fix this... lol seems to be broken on join, or maybe in other cases? eh just ignore this for now, test later.
 //            player.kick("Invalid latency id, expected=" + (poll == null ? "none" : poll.id()) + ", actual=" + id);
+            BoarLog.debug("latency", "Ignoring unmatched latency ack for " + player.getSession().bedrockUsername()
+                    + ", expected=" + (poll == null ? "none" : poll.id())
+                    + ", actual=" + id
+                    + ", rawTimestamp=" + packet.getTimestamp());
             return;
         }
 
