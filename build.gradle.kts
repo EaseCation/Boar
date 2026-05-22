@@ -14,6 +14,12 @@ repositories {
     maven("https://repo.opencollab.dev/main/")
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
 dependencies {
     compileOnly("org.geysermc.geyser:core:2.9.2-SNAPSHOT") {
         exclude(group = "com.google.code.gson", module = "gson")
