@@ -68,7 +68,9 @@ public class TeleportHandler {
             player.setPos(new Vec3(packet.getPosition().sub(0, player.getYOffset(), 0)));
             player.unvalidatedPosition = player.prevUnvalidatedPosition = player.position.clone();
 
-            if (player.unvalidatedTickEnd.lengthSquared() > 1.0E-6 && player.bestPossibility.getType() == VectorType.VELOCITY) {
+            if (player.unvalidatedTickEnd.lengthSquared() > 1.0E-6
+                    && player.bestPossibility != null
+                    && player.bestPossibility.getType() == VectorType.VELOCITY) {
                 player.velocity = player.bestPossibility.getVelocity();
             } else {
                 player.velocity = Vec3.ZERO.clone();

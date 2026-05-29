@@ -9,6 +9,7 @@ import ac.boar.anticheat.player.BoarPlayer;
 import ac.boar.anticheat.prediction.PredictionRunner;
 import ac.boar.anticheat.prediction.engine.data.Vector;
 import ac.boar.anticheat.teleport.data.TeleportCache;
+import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.util.DimensionUtil;
 import ac.boar.anticheat.util.math.Vec3;
 import ac.boar.protocol.api.CloudburstPacketEvent;
@@ -145,6 +146,24 @@ public class AuthInputPackets extends TeleportHandler implements PacketListener 
             });
         }
 
+        if (event.getPacket() instanceof MoveEntityAbsolutePacket packet) {
+            if (player.runtimeEntityId != packet.getRuntimeEntityId()) {
+                return;
+            }
+
+            if (!packet.isTeleported() && !packet.isForceMove()) {
+                return;
+            }
+
+            BoarLog.debug("teleport", "Queueing self absolute teleport for " + player.getSession().bedrockUsername()
+                    + ", protocol=" + player.getSession().protocolVersion()
+                    + ", position=" + packet.getPosition()
+                    + ", teleported=" + packet.isTeleported()
+                    + ", forceMove=" + packet.isForceMove()
+                    + ", tick=" + player.tick);
+            player.getTeleportUtil().queueTeleport(new Vec3(packet.getPosition()));
+        }
+
         if (event.getPacket() instanceof MovePlayerPacket packet) {
             if (packet.getMode() == MovePlayerPacket.Mode.HEAD_ROTATION) {
                 return;
@@ -158,9 +177,23 @@ public class AuthInputPackets extends TeleportHandler implements PacketListener 
             // Well it's a pain in the ass the support it, so just send teleport....
             if (packet.getMode() == MovePlayerPacket.Mode.NORMAL) {
                 packet.setMode(MovePlayerPacket.Mode.TELEPORT);
+                packet.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
             }
 
+            this.ensureTeleportCause(player, packet);
             player.getTeleportUtil().queueTeleport(new Vec3(packet.getPosition()));
         }
+    }
+
+    private void ensureTeleportCause(final BoarPlayer player, final MovePlayerPacket packet) {
+        if (packet.getMode() != MovePlayerPacket.Mode.TELEPORT || packet.getTeleportationCause() != null) {
+            return;
+        }
+
+        packet.setTeleportationCause(MovePlayerPacket.TeleportationCause.BEHAVIOR);
+        BoarLog.debug("teleport", "Filled missing teleport cause for " + player.getSession().bedrockUsername()
+                + ", protocol=" + player.getSession().protocolVersion()
+                + ", position=" + packet.getPosition()
+                + ", tick=" + player.tick);
     }
 }
