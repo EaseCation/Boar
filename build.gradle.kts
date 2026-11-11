@@ -12,6 +12,7 @@ version = "2.0.0"
 repositories {
     mavenCentral()
     maven("https://repo.opencollab.dev/main/")
+    mavenLocal() // Workspace Protocol uses the locally built igzip native bundle.
 }
 
 java {
@@ -31,6 +32,11 @@ dependencies {
 
     compileOnly("com.google.code.gson:gson:2.3.1")
     testImplementation("com.google.code.gson:gson:2.3.1")
+    testImplementation("org.geysermc.geyser:core:2.9.2-SNAPSHOT")
+    testImplementation(platform("org.junit:junit-bom:6.0.0"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+    testImplementation("org.mockito:mockito-core:5.20.0")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     implementation("it.unimi.dsi:fastutil:8.5.15")
 
@@ -38,8 +44,18 @@ dependencies {
 }
 
 tasks {
+    test {
+        useJUnitPlatform()
+    }
+
     shadowJar {
         archiveFileName = "boar.jar"
+        manifest {
+            attributes("Boar-Source-Commit" to providers.exec {
+                workingDir(project.projectDir)
+                commandLine("git", "rev-parse", "HEAD")
+            }.standardOutput.asText.get().trim())
+        }
 
         relocate("it.unimi.dsi.fastutil", "ac.boar.shaded.fastutil")
         relocate("com.fasterxml.jackson", "ac.boar.shaded.jackson")

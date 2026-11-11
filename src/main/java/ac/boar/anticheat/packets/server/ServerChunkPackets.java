@@ -5,24 +5,17 @@ import ac.boar.anticheat.compensated.world.base.CompensatedWorld;
 import ac.boar.anticheat.player.BoarPlayer;
 import ac.boar.anticheat.util.BoarLog;
 import ac.boar.anticheat.util.DimensionUtil;
-import ac.boar.anticheat.util.geyser.BlockStorage;
 import ac.boar.anticheat.util.geyser.BoarChunk;
 import ac.boar.anticheat.util.geyser.BoarChunkSection;
+import ac.boar.anticheat.util.geyser.GeyserChunkReader;
 import ac.boar.anticheat.util.math.Vec3;
 import ac.boar.protocol.api.CloudburstPacketEvent;
 import ac.boar.protocol.api.PacketListener;
-import io.netty.buffer.ByteBuf;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import org.cloudburstmc.math.GenericMath;
 import org.cloudburstmc.math.vector.Vector3i;
 import org.cloudburstmc.protocol.bedrock.data.ServerboundLoadingScreenPacketType;
 import org.cloudburstmc.protocol.bedrock.packet.*;
-import org.cloudburstmc.protocol.common.util.VarInts;
 import org.geysermc.geyser.level.BedrockDimension;
-import org.geysermc.geyser.level.chunk.bitarray.BitArray;
-import org.geysermc.geyser.level.chunk.bitarray.BitArrayVersion;
-import org.geysermc.geyser.level.chunk.bitarray.SingletonBitArray;
 import org.geysermc.mcprotocollib.protocol.data.game.level.block.BlockEntityInfo;
 
 import java.util.Objects;
@@ -74,32 +67,15 @@ public class ServerChunkPackets implements PacketListener {
             }
 
             final BedrockDimension dimension = DimensionUtil.dimensionFromId(packet.getDimension());
-            final BoarChunkSection[] sections = new BoarChunkSection[dimension.height() >> 4];
-
-            final ByteBuf buf = packet.getData().retainedDuplicate();
+            final BoarChunkSection[] sections;
             try {
-                for (int sectionY = 0; sectionY < subChunksCount; sectionY++) {
-                    buf.readByte(); // Chunk format version, Geyser only use the latest version 9 so this info is useless to us.
-
-                    final short layerCount = buf.readUnsignedByte(); // Layers (ideally 2).
-                    buf.readUnsignedByte(); // Sub chunk index, useless information to us.
-
-                    final BlockStorage[] layers = new BlockStorage[layerCount];
-                    for (int layer = 0; layer < layerCount; layer++) {
-                        layers[layer] = readLayer(buf, player.BEDROCK_AIR);
-                    }
-
-                    sections[sectionY] = new BoarChunkSection(layers);
-                }
-
-                // Ignore the rest, I only need the chunk data.
+                sections = GeyserChunkReader.read(packet, player.getSession(), dimension.height() >> 4);
             } catch (Exception exception) {
                 BoarLog.warning("chunk", "Failed to read LevelChunkPacket for " + player.getSession().bedrockUsername()
                         + ", chunk=" + packet.getChunkX() + "," + packet.getChunkZ()
-                        + ", subChunks=" + subChunksCount, exception);
-                // Bedrock just ignore and use whatever they were able to read.
-            } finally {
-                buf.release();
+                        + ", subChunks=" + subChunksCount + ", cached=" + packet.isCachingEnabled(), exception);
+                // Never replace a known world view with a partially decoded chunk.
+                return;
             }
 
             player.getLatencyUtil().queue(() -> {
@@ -163,35 +139,4 @@ public class ServerChunkPackets implements PacketListener {
         }
     }
 
-    private BlockStorage readLayer(final ByteBuf buf, final int initialId) {
-        final int version = buf.readUnsignedByte() >> 1;
-        if (version == 127) { // 127 = Same values as previous palette
-            return null;
-        }
-
-        final BitArray bitArray;
-        if (version == 0) {
-            bitArray = BitArrayVersion.get(version, true).createArray(4096, null);
-        } else {
-            bitArray = BitArrayVersion.get(version, true).createArray(4096);
-        }
-
-        if (!(bitArray instanceof SingletonBitArray)) {
-            for (int i = 0; i < bitArray.getWords().length; i++) {
-                bitArray.getWords()[i] = buf.readIntLE();
-            }
-        }
-
-        final int size = bitArray instanceof SingletonBitArray ? 1 : VarInts.readInt(buf);
-
-        final IntList palette = new IntArrayList(size);
-        for (int i = 0; i < size; i++) {
-            palette.add(VarInts.readInt(buf));
-        }
-
-        if (palette.isEmpty()) {
-            palette.add(initialId);
-        }
-        return new BlockStorage(bitArray, palette);
-    }
 }
