@@ -10,9 +10,20 @@ group = "ac.boar"
 version = "2.0.0"
 
 repositories {
+    // EaseCation private repository (Aliyun Yunxiao Packages), only for net.easecation.* coordinates:
+    // the NetEase Geyser fork and its Protocol/Network/igzip forks.
+    // Credentials: yunxiaoMavenUsername / yunxiaoMavenPassword in ~/.gradle/gradle.properties.
+    exclusiveContent {
+        forRepository {
+            maven("https://easecation-cn-hangzhou.devops.aliyuncs.com/packages/api/protocol/maven/14075-release-h64s7e") {
+                name = "yunxiaoMaven"
+                credentials(PasswordCredentials::class)
+            }
+        }
+        filter { includeGroupByRegex("net\\.easecation(\\..*)?") }
+    }
     mavenCentral()
     maven("https://repo.opencollab.dev/main/")
-    mavenLocal() // Workspace Protocol uses the locally built igzip native bundle.
 }
 
 java {
@@ -22,7 +33,8 @@ java {
 }
 
 dependencies {
-    compileOnly("org.geysermc.geyser:core:2.9.2-SNAPSHOT") {
+    // EaseCation (NetEase) Geyser fork
+    compileOnly("net.easecation.fork.geysermc.geyser:core:2.9.2-ec.2") {
         exclude(group = "com.google.code.gson", module = "gson")
     }
 
@@ -32,7 +44,7 @@ dependencies {
 
     compileOnly("com.google.code.gson:gson:2.3.1")
     testImplementation("com.google.code.gson:gson:2.3.1")
-    testImplementation("org.geysermc.geyser:core:2.9.2-SNAPSHOT")
+    testImplementation("net.easecation.fork.geysermc.geyser:core:2.9.2-ec.2")
     testImplementation(platform("org.junit:junit-bom:6.0.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testImplementation("org.mockito:mockito-core:5.20.0")
